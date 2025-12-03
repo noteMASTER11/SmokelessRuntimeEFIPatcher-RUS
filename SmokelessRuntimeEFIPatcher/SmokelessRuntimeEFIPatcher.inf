@@ -12,6 +12,7 @@
   Utility.c
   OpCode.c
   RussianFont.c
+  Logger.c
   Strings.uni
   Images.idf
   Logo.bmp

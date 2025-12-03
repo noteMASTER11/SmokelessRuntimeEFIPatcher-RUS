@@ -22,6 +22,12 @@
 #string STR_DEL_LOG                         #language en-US  "Старый лог был удалён\n\r"
                                             #language en-GB  "The old log has been deleted\n\r"
 
+#string STR_DEBUG_ENABLED_AUTO              #language en-US  "DEBUG лог включен автоматически\n\r"
+                                            #language en-GB  "Debug logging enabled automatically\n\r"
+
+#string STR_DEBUG_ENABLED_MANUAL            #language en-US  "DEBUG лог включен\n\r"
+                                            #language en-GB  "Debug logging enabled\n\r"
+
 #string STR_FAILED_REGEX                    #language en-US  "Зависимости не найдены: RegularExpressionProtocol\nУбедитесь что файл Oniguruma.efi доступен\n\r"
                                             #language en-GB  "Failed on Locating RegularExpressionProtocol\n\r"
 

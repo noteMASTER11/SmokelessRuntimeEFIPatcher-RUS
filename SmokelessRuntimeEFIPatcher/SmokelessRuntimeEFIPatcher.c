@@ -1,6 +1,7 @@
 ﻿//“Pointer/Reference alignment” is right.
 
 //Include sources
+#include "Logger.h"
 #include "Utility.h"
 #include "Opcode.h"
 
@@ -73,16 +74,6 @@ typedef struct {
   UINTN Height;
   UINTN PixelsPerScanLine;
 } FRAME_BUFFER;
-
-//Writes string from the buffer to SREP.log
-VOID
-LogToFile(IN EFI_FILE *LogFile, IN CHAR16 *String)
-{
-        if (LogFile == NULL) { return; }
-        UINTN Size = StrLen(String) * 2;      //Size variable equals to the string size, multiplies by 2 cuz Unicode is CHAR16
-        LogFile->Write(LogFile,&Size,String); //EFI_FILE_WRITE (Filename, size, the actual string to write)
-        LogFile->Flush(LogFile);              //Flushes all modified data associated with a file to a device
-}
 
 //Collect OPCODEs from cfg
 static VOID
@@ -232,6 +223,8 @@ SREPEntry(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *SystemTable) {
 
     gBS->SetWatchdogTimer(0, 0, 0, 0); //Disable watchdog so the system doesn't reboot by timer
 
+    LoggerInit(ImageHandle);
+
     /*-----------------------------------------------------------------------------------*/
     //
     //Locate HII database and HII image protocols, retrieve HII packages from ImageHandle
@@ -376,34 +369,35 @@ SREPEntry(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *SystemTable) {
     HandleProtocol(LoadedImage->DeviceHandle, &gEfiSimpleFileSystemProtocolGuid, (void **)&FileSystem);
     FileSystem->OpenVolume(FileSystem, &Root);
 
-    gST->ConOut->OutputString(gST->ConOut, HiiGetString(HiiHandle, STRING_TOKEN(STR_PRESS_L), NULL));
-    for ( Status = EFI_UNSUPPORTED, Delay = 0x4; Delay != 0 && EFI_ERROR(Status); Delay--)
-    {
-      gBS->Stall(1000000);
-      Status = gST->ConIn->ReadKeyStroke(gST->ConIn, &Key);
-    }
-    if ((Status == EFI_SUCCESS) && (Key.UnicodeChar == L'l') && (Key.ScanCode == SCAN_NULL)) {
-
-      Status = Root->Open(Root, &LogFile, L"SREP.log", EFI_FILE_MODE_WRITE | EFI_FILE_MODE_READ | EFI_FILE_MODE_CREATE, 0);
-
-      //File already exists, delete it.
-      if (Status == EFI_SUCCESS) {
-        LogFile->Delete(LogFile);
-        Status = Root->Open(Root, &LogFile, L"SREP.log", EFI_FILE_MODE_WRITE | EFI_FILE_MODE_READ | EFI_FILE_MODE_CREATE, 0);
-        gST->ConOut->OutputString(gST->ConOut, HiiGetString(HiiHandle, STRING_TOKEN(STR_DEL_LOG), NULL));
-        UnicodeSPrint(Log, 0x200, HiiGetString(HiiHandle, STRING_TOKEN(STR_DEL_LOG), NULL));
-        LogToFile(LogFile, Log);
+    if (!LoggerIsEnabled()) {
+      gST->ConOut->OutputString(gST->ConOut, HiiGetString(HiiHandle, STRING_TOKEN(STR_PRESS_L), NULL));
+      for (Status = EFI_UNSUPPORTED, Delay = 0x4; (Delay != 0) && EFI_ERROR(Status); Delay--) {
+        gBS->Stall(1000000);
+        Status = gST->ConIn->ReadKeyStroke(gST->ConIn, &Key);
       }
-      else
-      {
-        gST->ConOut->OutputString(gST->ConOut, HiiGetString(HiiHandle, STRING_TOKEN(STR_LOG_OPEN_FAIL), NULL));
-        gBS->Stall(3000000);
-        return Status;
+
+      if ((Status == EFI_SUCCESS) && (Key.UnicodeChar == L'l') && (Key.ScanCode == SCAN_NULL)) {
+        Status = LoggerEnable();
+        if (EFI_ERROR(Status)) {
+          CONST CHAR16 *FailMessage = HiiGetString(HiiHandle, STRING_TOKEN(STR_LOG_OPEN_FAIL), NULL);
+          gST->ConOut->OutputString(gST->ConOut, FailMessage);
+          LoggerWriteRaw(LOGGER_LEVEL_ERROR, FailMessage);
+          gBS->Stall(3000000);
+          return Status;
+        }
+
+        CONST CHAR16 *ManualMessage = HiiGetString(HiiHandle, STRING_TOKEN(STR_DEBUG_ENABLED_MANUAL), NULL);
+        gST->ConOut->OutputString(gST->ConOut, ManualMessage);
+        LoggerWriteRaw(LOGGER_LEVEL_INFO, ManualMessage);
+      } else {
+        CONST CHAR16 *CancelMessage = HiiGetString(HiiHandle, STRING_TOKEN(STR_LOG_CANCEL), NULL);
+        gST->ConOut->OutputString(gST->ConOut, CancelMessage);
+        LoggerWriteRaw(LOGGER_LEVEL_INFO, CancelMessage);
       }
-    }
-    else
-    {
-      gST->ConOut->OutputString(gST->ConOut, HiiGetString(HiiHandle, STRING_TOKEN(STR_LOG_CANCEL), NULL));
+    } else {
+      CONST CHAR16 *AutoMessage = HiiGetString(HiiHandle, STRING_TOKEN(STR_DEBUG_ENABLED_AUTO), NULL);
+      gST->ConOut->OutputString(gST->ConOut, AutoMessage);
+      LoggerWriteRaw(LOGGER_LEVEL_INFO, AutoMessage);
     }
 
     /*-----------------------------------------------------------------------------------*/

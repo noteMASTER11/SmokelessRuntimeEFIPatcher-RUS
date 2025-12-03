@@ -40,12 +40,6 @@
 //Set default lang
 EFI_HII_HANDLE HiiHandle;
 
-//Initizalize log function
-VOID LogToFile(
-  IN EFI_FILE *LogFile,
-  IN CHAR16 *String
-);
-
 CHAR16 *FindLoadedImageFileName(
   IN EFI_LOADED_IMAGE_PROTOCOL *LoadedImage,
   IN EFI_GUID FilterProtocol
