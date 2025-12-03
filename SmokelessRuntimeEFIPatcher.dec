@@ -11,6 +11,7 @@
   PACKAGE_VERSION                = 1.01
 
 [Includes]
+  SmokelessRuntimeEFIPatcher/Include
 
 [Guids]
   gSmokelessRuntimeEFIPatcherPkgTokenSpaceGuid = {0x150cab53, 0xad47, 0x4385, {0xb5, 0xdd, 0xbc, 0xfc, 0x76, 0xba, 0xca, 0xf0}}

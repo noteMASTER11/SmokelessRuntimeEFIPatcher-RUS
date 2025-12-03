@@ -12,10 +12,10 @@
 | NASM 2.15+ | Сборка криптографических библиотек. | Добавьте в `%PATH%`. |
 | Git | Получение исходников EDK II и EDK1. | — |
 | **EDK II** (репозиторий `https://github.com/tianocore/edk2`) | Базовая инфраструктура сборки. | Клонируйте в каталог `<workspace>\edk2`. |
-| **EDK Legacy (EDK1)** (`https://github.com/tianocore/edklegacy` или архив UDK2010`) | Для заголовочных файлов старого `DisplayProtocol`. | Достаточно заголовков в `Edk\Foundation\Efi\Include\Protocol`. |
+| **EDK Legacy (EDK1)** (`https://github.com/tianocore/edklegacy` или архив UDK2010`) | (Опционально) Полный набор заголовков старого `DisplayProtocol`. | В репозитории уже присутствует минимальный заголовок, но при необходимости можно заменить его полноценной версией. |
 | Oniguruma.efi (предварительно собранный) | Поставляет `EFI_REGULAR_EXPRESSION_PROTOCOL`. | Разместите рядом с итоговым бинарником для запуска. |
 
-> Примечание. Если вы не хотите держать полный EDK1, можно скопировать нужные заголовки (`DisplayProtocol.h` и связанные GUID) в `SREPPkg/Include/Protocol`, однако использование `edklegacy` гарантирует совпадение структуры с оригинальным проектом.
+> Примечание. Минимальный `DisplayProtocol.h` уже включён в репозиторий. При желании его можно заменить файлом из `edklegacy`, если требуется полная совместимость с оригинальной реализацией.
 
 ## 2. Подготовка структуры каталогов
 
@@ -31,12 +31,7 @@
    cd edk2
    git clone https://github.com/<your-account>/SmokelessRuntimeEFIPatcher-RUS.git SREPPkg
    ```
-4. Скопируйте заголовки из EDK1:
-   ```
-   edklegacy\
-     Foundation\Efi\Include\Protocol\DisplayProtocol.h   ->   edk2\SREPPkg\SmokelessRuntimeEFIPatcher\Include\Protocol\
-   ```
-   В репозитории уже есть подключение `#include <Protocol/DisplayProtocol.h>`, поэтому важно, чтобы путь попадал в инклюд-дерево EDK II. Можно добавить каталог через переменную `INC_PATH` или просто разместить файл в `SREPPkg\Include\Protocol` (каталог нужно создать).
+4. (Опционально) Если требуется оригинальный заголовок из EDK1, скопируйте его поверх поставленного в `SREPPkg\SmokelessRuntimeEFIPatcher\Include\Protocol\DisplayProtocol.h`.
 
 ## 3. Настройка EDK II
 
